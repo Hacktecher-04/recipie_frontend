@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 const instance = axios.create({
-    baseURL: 'https://backend-recipiereccomandation.onrender.com',
+    baseURL: 'http://localhost:5000',
     withCredentials: true, 
 });
 
