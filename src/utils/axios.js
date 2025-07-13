@@ -2,6 +2,7 @@ const axios = require('axios');
 
 const instance = axios.create({
     baseURL: 'https://backend-recipiereccomandation.onrender.com',
+    withCredentials: true, 
 });
 
 instance.interceptors.request.use(function (config) {

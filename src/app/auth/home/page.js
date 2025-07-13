@@ -16,27 +16,34 @@ const HomePage = () => {
   const [selectedSteps, setSelectedSteps] = useState([]);
   const [originalPrompt, setOriginalPrompt] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState(null);
   const router = useRouter();
 
-  const [user, setUser] = useState(null);
+useEffect(() => {
+  const fetchUserProfile = async () => {
+    try {
+      const res = await axios.get('/api/auth/profile', {
+      });
+      if (res.data) {
+        setUser(res.data);
+        localStorage.setItem('user', JSON.stringify(res.data));
+        setIsAuthenticated(true);
+      } else {  
+        router.push('/auth/login');
+      }
+    } catch (err) {
+      router.push('/auth/login');
+    }
+  };
+  fetchUserProfile();
+}, []);
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) setUser(JSON.parse(storedUser));
-  }, []);
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) setIsAuthenticated(true);
-    else router.push("/auth/login");
-  }, []);
 
   const fetchRecipes = async (ingredients) => {
     setLoading(true);
-    setOriginalPrompt(ingredients.join(", ")); // Store for later saving
+    setOriginalPrompt(ingredients.join(", "));
     try {
-      const userId = user?.id;
-      const response = await axios.post(`/api/recipe/generate-recipes`, { ingredients, userId });
+      const response = await axios.post(`/api/recipe/generate-recipes`, { ingredients });
       setRecipeData(response.data.recipes);
     } catch (err) {
       console.error(err);
@@ -48,14 +55,10 @@ const HomePage = () => {
   const handleSelectRecipe = async (recipe) => {
     try {
       setLoading(true);
-
-      // 1. Send recipe to save and get full steps
       const response = await axios.post(`/api/recipe/save-recipe`, {
         recipe,
-        userId: user.id,
         prompt: originalPrompt,
       });
-
       const { steps } = response.data.saved;
 
       setSelectedRecipe(recipe);
@@ -67,11 +70,11 @@ const HomePage = () => {
     }
   };
 
-  if (!isAuthenticated) return null;
+  if (!isAuthenticated) return null; // or loading spinner here until profile fetched
 
   return (
     <div className="min-h-screen bg-white">
-      <Navbar />
+      <Navbar user={user} /> {/* Pass user to Navbar if needed */}
       <div className="flex flex-col items-center w-full px-4">
         <div className="w-full flex flex-wrap justify-center gap-4 min-h-[400px] py-6">
           {loading ? (
